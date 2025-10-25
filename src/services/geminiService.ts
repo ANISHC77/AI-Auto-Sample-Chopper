@@ -11,23 +11,31 @@ const linearChop = (duration: number): number[] => {
 
 const getMelodicPrompt = (duration: number): string => {
   return `
-    You are an expert sample-based producer, like Madlib or The Alchemist, with a deep understanding of music theory. You are analyzing a melodic or instrumental sample.
-    The audio sample is ${duration.toFixed(2)} seconds long.
-    Your goal is to find the 8 most musically compelling points to chop this sample for creating new melodies.
-    Focus on chopping at the beginning of new melodic phrases, significant chord changes, or impactful notes that can be re-pitched and re-sequenced. The chops should provide a versatile palette of sounds.
-    - The first chop must start at 0.
-    - The final array must contain exactly 8 floating-point numbers, sorted in ascending order.
-    - Do not include any explanation, just the JSON object.
+  You are an expert sample-based producer with a strong ear for musical structure. Analyze a melodic or instrumental audio sample.
+
+  • The audio is ${duration.toFixed(2)} seconds long.
+  • Return 8 musically expressive chop start times as floating-point seconds inside
+    a JSON object called "chopStartTimes".
+
+  Musical priorities for selecting chop points:
+  1. Beginnings of new melodic phrases.
+  2. Noticeable pitch jumps or motif changes.
+  3. Breath or pause points in vocals or lead instruments.
+  4. Bar starts or strong downbeats that anchor rhythm.
+  5. Avoid sections with sustained notes lacking clear attack.
+  6. Distribute chops across the full duration so they cover early, middle, and late moments.
+
+  Hard rules:
+  • The first chop must always be 0.
+  • Provide exactly 8 numbers, strictly sorted in ascending order.
+  • All times must be >= 0 and <= total duration.
+  • Only reply with the JSON object. No text outside JSON.
   `;
 };
 
 export const getMelodicChopPoints = async (duration: number): Promise<number[]> => {
-  if (!process.env.API_KEY) {
-    console.error("API_KEY environment variable not set. Using fallback linear chopping.");
-    return linearChop(duration);
-  }
   
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY, vertexai: true });
+  const ai = new GoogleGenAI({ apiKey: ""});
   const prompt = getMelodicPrompt(duration);
 
   try {
